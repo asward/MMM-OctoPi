@@ -16,7 +16,8 @@ Module.register("MMM-OctoPi", {
     },
     state:{
         hidden: true,
-        machineState: ""
+        machineState: "",
+        isPrinting: false
     },
     displayTimer: null,
     // Define required scripts. 
@@ -141,18 +142,17 @@ Module.register("MMM-OctoPi", {
     updateData: function(data) {
         console.log("Updating OctoPrint Data");
 
-        //On status change
-        if(data.state.text != this.state.machineState){
+        //On printing state change
+        if(data.state.flags.printing === !this.state.isPrinting){
             //If leaving 'printing', start timeout timer
-            if(this.state.machineState.toLowerCase() === "printing"){ 
+            if(!data.state.flags.printing){ 
                 this.displayTimer = setTimeout(()=>this.hide(),this.config.displayTimeout*1000);
-            } 
-            //If entering printing, remove timer and show immedietly
-            if(data.state.text.toLowerCase() === "printing"){ //If we're entering print, clear timer and show
+            } else{
                 clearTimeout(this.displayTimer);
-                this.unhide();
+                this.unhide()
             }
-            this.state.machineState = data.state.text;
+            
+            this.state.isPrinting = data.state.flags.printing;
         }
 
         console.log($("#opState")[0]);
